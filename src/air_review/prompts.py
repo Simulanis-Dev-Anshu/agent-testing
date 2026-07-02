@@ -27,7 +27,7 @@ REVIEW_RESPONSE_SCHEMA = {
                         "enum": ["info", "warning", "critical"],
                     },
                     "file": {"type": "string"},
-                    "line_hint": {"type": "string", "nullable": True},
+                    "line_hint": {"type": "string"},
                     "title": {"type": "string"},
                     "detail": {"type": "string"},
                     "suggestion": {"type": "string"},
@@ -36,6 +36,7 @@ REVIEW_RESPONSE_SCHEMA = {
                     "category",
                     "severity",
                     "file",
+                    "line_hint",
                     "title",
                     "detail",
                     "suggestion",
@@ -66,7 +67,7 @@ Avoid nitpicks about naming or formatting unless they hide real bugs.
 Rules:
 - Base findings only on the provided diff context.
 - Cite file paths from the diff headers.
-- Use line_hint like "L42" when you can infer it from diff hunk headers; use null when unknown.
+- Use line_hint like "L42" when you can infer it from diff hunk headers; use an empty string when unknown.
 - Be constructive and specific in suggestions.
 - Return JSON matching the schema exactly.
 """
