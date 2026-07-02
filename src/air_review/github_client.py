@@ -10,27 +10,7 @@ from github.PullRequest import PullRequest
 from github.Repository import Repository
 
 from air_review.diff_processor import FilePatch, parse_line_number
-
-BOT_COMMENT_MARKER = "<!-- air-review-bot -->"
-
-
-def _format_inline_comment(finding: dict) -> str:
-    severity = finding.get("severity", "info").title()
-    title = finding.get("title", "Finding")
-    detail = finding.get("detail", "").strip()
-    suggestion = finding.get("suggestion", "").strip()
-    suggested_code = finding.get("suggested_code", "").strip()
-
-    lines = [f"**{severity} — {title}**", ""]
-    if detail:
-        lines.extend([detail, ""])
-
-    if suggested_code:
-        lines.extend(["Suggested change:", "", "```suggestion", suggested_code, "```"])
-    elif suggestion:
-        lines.extend([f"**Fix:** {suggestion}"])
-
-    return "\n".join(lines).strip()
+from air_review.review_blocks import format_finding_inline
 
 
 @dataclass
@@ -45,7 +25,13 @@ class PullRequestContext:
 
 
 class GitHubReviewClient:
-    def __init__(self, token: str | None = None, repo: str | None = None) -> None:
+    def __init__(
+        self,
+        token: str | None = None,
+        repo: str | None = None,
+        bot_name: str = "AIR Review",
+        comment_marker: str = "<!-- air-review-bot -->",
+    ) -> None:
         auth_token = token or os.environ.get("GITHUB_TOKEN")
         if not auth_token:
             raise ValueError("GITHUB_TOKEN is required")
@@ -54,6 +40,8 @@ class GitHubReviewClient:
         if not repository:
             raise ValueError("GITHUB_REPOSITORY is required (format: owner/repo)")
 
+        self.bot_name = bot_name
+        self.comment_marker = comment_marker
         self.github = Github(auth=Auth.Token(auth_token))
         self.repo_name = repository
         self.repo: Repository = self.github.get_repo(repository)
@@ -91,11 +79,10 @@ class GitHubReviewClient:
 
     def upsert_review_comment(self, pr_number: int, body: str) -> None:
         issue = self.repo.get_issue(pr_number)
-        marker = BOT_COMMENT_MARKER
-        full_body = f"{marker}\n{body.strip()}"
+        full_body = f"{self.comment_marker}\n{body.strip()}"
 
         for comment in issue.get_comments():
-            if marker in (comment.body or ""):
+            if self.comment_marker in (comment.body or ""):
                 comment.edit(full_body)
                 return
 
@@ -114,7 +101,7 @@ class GitHubReviewClient:
             for finding in findings
             if finding.get("severity") in severities
             and finding.get("file")
-            and finding.get("suggestion")
+            and (finding.get("suggested_code") or finding.get("suggestion"))
         ]
         if not eligible:
             return 0
@@ -125,7 +112,7 @@ class GitHubReviewClient:
             if line is None:
                 continue
 
-            body = _format_inline_comment(finding)
+            body = format_finding_inline(finding)
             comments.append(
                 {
                     "path": finding["file"],
@@ -143,7 +130,7 @@ class GitHubReviewClient:
             commit = self.repo.get_commit(head_sha)
             pull.create_review(
                 commit=commit,
-                body="Inline suggestions from AI code review.",
+                body=f"Inline suggestions from {self.bot_name}.",
                 event="COMMENT",
                 comments=comments,
             )
