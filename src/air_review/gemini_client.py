@@ -35,7 +35,7 @@ class GeminiReviewClient:
                 system_instruction=system_prompt,
                 response_mime_type="application/json",
                 response_schema=REVIEW_RESPONSE_SCHEMA,
-                temperature=0.2,
+                temperature=0.35,
             ),
         )
         text = response.text or "{}"
@@ -72,11 +72,9 @@ class GeminiReviewClient:
     ) -> dict[str, Any]:
         if not processed.chunks:
             return {
-                "summary": "No reviewable diff content was found after filtering.",
-                "risk_level": "low",
+                "walkthrough": "I couldn't find reviewable diff content after filtering.",
+                "change_summary": [],
                 "findings": [],
-                "positives": [],
-                "test_suggestions": [],
             }
 
         chunk_reviews = [

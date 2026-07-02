@@ -1,4 +1,6 @@
 model: gemini-2.5-pro
+bot_name: "AIR Review"
+bot_id: "air-review"
 max_files: 40
 max_patch_bytes: 120000
 chunk_patch_bytes: 50000

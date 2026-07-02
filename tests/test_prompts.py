@@ -10,7 +10,8 @@ def test_review_response_schema_is_valid_for_gemini() -> None:
         response_mime_type="application/json",
         response_schema=REVIEW_RESPONSE_SCHEMA,
     )
-    assert config.response_mime_type == "application/json"
+    assert "walkthrough" in config.response_schema["properties"]
+    assert "change_summary" in config.response_schema["properties"]
     line_hint = (
         config.response_schema["properties"]["findings"]["items"]["properties"]["line_hint"]
     )

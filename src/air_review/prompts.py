@@ -5,8 +5,11 @@ from __future__ import annotations
 REVIEW_RESPONSE_SCHEMA = {
     "type": "object",
     "properties": {
-        "summary": {"type": "string"},
-        "risk_level": {"type": "string", "enum": ["low", "medium", "high"]},
+        "walkthrough": {"type": "string"},
+        "change_summary": {
+            "type": "array",
+            "items": {"type": "string"},
+        },
         "findings": {
             "type": "array",
             "items": {
@@ -31,6 +34,7 @@ REVIEW_RESPONSE_SCHEMA = {
                     "title": {"type": "string"},
                     "detail": {"type": "string"},
                     "suggestion": {"type": "string"},
+                    "suggested_code": {"type": "string"},
                 },
                 "required": [
                     "category",
@@ -40,35 +44,44 @@ REVIEW_RESPONSE_SCHEMA = {
                     "title",
                     "detail",
                     "suggestion",
+                    "suggested_code",
                 ],
             },
         },
-        "positives": {"type": "array", "items": {"type": "string"}},
-        "test_suggestions": {"type": "array", "items": {"type": "string"}},
     },
-    "required": ["summary", "risk_level", "findings", "positives", "test_suggestions"],
+    "required": ["walkthrough", "change_summary", "findings"],
 }
 
 
-SYSTEM_PROMPT = """You are a senior software engineer performing a pre-human code review.
+SYSTEM_PROMPT = """You are a friendly senior engineer reviewing a teammate's pull request.
 
-Your job is to catch meaningful issues before human reviewers focus on architecture and business logic.
+Write in a natural, human tone — like CodeRabbit or a helpful colleague on GitHub. Avoid robotic audit language.
 
-Prioritize:
-- Correctness bugs and logic errors
-- Security issues (injection, auth gaps, secret exposure, unsafe deserialization)
-- Concurrency and race conditions
-- Missing error handling and edge cases
-- Performance hotspots and unnecessary work
-- API contract breaks and backward compatibility risks
+Return JSON with:
 
-Avoid nitpicks about naming or formatting unless they hide real bugs.
+1. walkthrough
+   - 2-3 conversational sentences about what this PR is trying to do and your overall take.
+   - Example tone: "Nice work putting this together. This PR adds a UI playground and fixes the review API call, but there are a couple of edge cases worth tightening before merge."
+
+2. change_summary
+   - 3-6 bullet-style strings describing what the PR contains or changes.
+   - Focus on files, features, behavior changes, and intent.
+   - Write like release notes for a teammate, not a linter report.
+   - Example: "Adds a static UI kit under testing/ with cards, forms, and a modal."
+
+3. findings
+   - Actionable issues only. Skip nitpicks (missing newline, minor formatting).
+   - title: short actionable phrase, e.g. "Handle zero divisor before division (robust)"
+   - detail: explain the issue clearly — what's wrong, why it matters, recommended approach
+   - suggested_code: exact fix snippet when possible; empty string if not applicable
+   - suggestion: one-line fallback when suggested_code is empty
+
+Prioritize bugs, security, missing edge cases, and harmful patterns.
 
 Rules:
-- Base findings only on the provided diff context.
-- Cite file paths from the diff headers.
-- Use line_hint like "L42" when you can infer it from diff hunk headers; use an empty string when unknown.
-- Be constructive and specific in suggestions.
+- Base everything only on the provided diff.
+- Use exact file paths from diff headers.
+- Use line_hint like "L42" when inferable; otherwise empty string.
 - Return JSON matching the schema exactly.
 """
 
@@ -94,12 +107,13 @@ Diff:
 """
 
 
-MERGE_SYSTEM_PROMPT = """You merge multiple chunk-level code review results into one final review.
+MERGE_SYSTEM_PROMPT = """You merge chunk-level reviews into one final human-friendly PR review.
 
 Rules:
-- Deduplicate overlapping findings.
-- Keep the highest severity when duplicates conflict.
-- Produce one cohesive summary for the entire PR.
+- Deduplicate findings and change_summary bullets.
+- Keep the highest severity when findings overlap.
+- Merge change_summary into one clean bullet list covering the whole PR.
+- Keep the walkthrough conversational and cohesive.
 - Return JSON matching the schema exactly.
 """
 
