@@ -1,0 +1,22 @@
+model: gemini-2.5-pro
+max_files: 40
+max_patch_bytes: 120000
+chunk_patch_bytes: 50000
+ignore_patterns:
+  - "package-lock.json"
+  - "yarn.lock"
+  - "pnpm-lock.yaml"
+  - "poetry.lock"
+  - "Cargo.lock"
+  - "Gemfile.lock"
+  - "**/*.min.js"
+  - "**/*.min.css"
+  - "dist/**"
+  - "build/**"
+  - "**/*.generated.*"
+  - "**/node_modules/**"
+skip_labels:
+  - "no-ai-review"
+inline_comment_severities:
+  - "critical"
+  - "warning"
