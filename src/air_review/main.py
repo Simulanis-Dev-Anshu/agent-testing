@@ -177,12 +177,15 @@ def run_review(args: argparse.Namespace) -> int:
 
         inline_count = 0
         if not args.no_inline:
-            inline_count = github_client.post_inline_review_comments(
-                pr_number=pr_number,
-                head_sha=context.head_sha,
-                findings=review.get("findings", []),
-                severities=config.inline_comment_severities,
-            )
+            try:
+                inline_count = github_client.post_inline_review_comments(
+                    pr_number=pr_number,
+                    head_sha=context.head_sha,
+                    findings=review.get("findings", []),
+                    severities=config.inline_comment_severities,
+                )
+            except Exception as exc:
+                print(f"Inline review comments failed, continuing with summary: {exc}")
 
         markdown = format_review_markdown(
             review=review,
