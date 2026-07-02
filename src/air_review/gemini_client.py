@@ -72,11 +72,8 @@ class GeminiReviewClient:
     ) -> dict[str, Any]:
         if not processed.chunks:
             return {
-                "summary": "No reviewable diff content was found after filtering.",
-                "risk_level": "low",
+                "walkthrough": "No reviewable diff content was found after filtering.",
                 "findings": [],
-                "positives": [],
-                "test_suggestions": [],
             }
 
         chunk_reviews = [

@@ -14,6 +14,25 @@ from air_review.diff_processor import FilePatch, parse_line_number
 BOT_COMMENT_MARKER = "<!-- air-review-bot -->"
 
 
+def _format_inline_comment(finding: dict) -> str:
+    severity = finding.get("severity", "info").title()
+    title = finding.get("title", "Finding")
+    detail = finding.get("detail", "").strip()
+    suggestion = finding.get("suggestion", "").strip()
+    suggested_code = finding.get("suggested_code", "").strip()
+
+    lines = [f"**{severity} — {title}**", ""]
+    if detail:
+        lines.extend([detail, ""])
+
+    if suggested_code:
+        lines.extend(["Suggested change:", "", "```suggestion", suggested_code, "```"])
+    elif suggestion:
+        lines.extend([f"**Fix:** {suggestion}"])
+
+    return "\n".join(lines).strip()
+
+
 @dataclass
 class PullRequestContext:
     number: int
@@ -106,12 +125,7 @@ class GitHubReviewClient:
             if line is None:
                 continue
 
-            body = (
-                f"**[{finding.get('category', 'review')}/{finding.get('severity', 'info')}] "
-                f"{finding.get('title', 'Finding')}**\n\n"
-                f"{finding.get('detail', '').strip()}\n\n"
-                f"**Suggestion:** {finding.get('suggestion', '').strip()}"
-            )
+            body = _format_inline_comment(finding)
             comments.append(
                 {
                     "path": finding["file"],

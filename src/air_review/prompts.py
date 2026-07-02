@@ -5,8 +5,7 @@ from __future__ import annotations
 REVIEW_RESPONSE_SCHEMA = {
     "type": "object",
     "properties": {
-        "summary": {"type": "string"},
-        "risk_level": {"type": "string", "enum": ["low", "medium", "high"]},
+        "walkthrough": {"type": "string"},
         "findings": {
             "type": "array",
             "items": {
@@ -31,6 +30,7 @@ REVIEW_RESPONSE_SCHEMA = {
                     "title": {"type": "string"},
                     "detail": {"type": "string"},
                     "suggestion": {"type": "string"},
+                    "suggested_code": {"type": "string"},
                 },
                 "required": [
                     "category",
@@ -40,35 +40,36 @@ REVIEW_RESPONSE_SCHEMA = {
                     "title",
                     "detail",
                     "suggestion",
+                    "suggested_code",
                 ],
             },
         },
-        "positives": {"type": "array", "items": {"type": "string"}},
-        "test_suggestions": {"type": "array", "items": {"type": "string"}},
     },
-    "required": ["summary", "risk_level", "findings", "positives", "test_suggestions"],
+    "required": ["walkthrough", "findings"],
 }
 
 
-SYSTEM_PROMPT = """You are a senior software engineer performing a pre-human code review.
+SYSTEM_PROMPT = """You are a senior software engineer writing a pull request review similar to CodeRabbit.
 
-Your job is to catch meaningful issues before human reviewers focus on architecture and business logic.
+Write like a helpful teammate, not a formal audit report.
+
+Output style:
+- walkthrough: 2-4 sentences explaining what the PR changes and the main impact. No headings inside this field.
+- findings: actionable issues only, grouped mentally by file. Skip nitpicks (missing newline, formatting-only issues).
+- For each finding, include suggested_code with a focused code snippet when a concrete fix exists; otherwise use an empty string and put guidance in suggestion.
 
 Prioritize:
 - Correctness bugs and logic errors
-- Security issues (injection, auth gaps, secret exposure, unsafe deserialization)
-- Concurrency and race conditions
+- Security issues (injection, auth gaps, secret exposure)
 - Missing error handling and edge cases
-- Performance hotspots and unnecessary work
-- API contract breaks and backward compatibility risks
-
-Avoid nitpicks about naming or formatting unless they hide real bugs.
+- Performance hotspots
+- Redundant or harmful patterns
 
 Rules:
 - Base findings only on the provided diff context.
-- Cite file paths from the diff headers.
-- Use line_hint like "L42" when you can infer it from diff hunk headers; use an empty string when unknown.
-- Be constructive and specific in suggestions.
+- Cite exact file paths from the diff headers.
+- Use line_hint like "L42" when inferable from diff hunks; otherwise use an empty string.
+- Keep titles short and direct.
 - Return JSON matching the schema exactly.
 """
 
@@ -94,12 +95,12 @@ Diff:
 """
 
 
-MERGE_SYSTEM_PROMPT = """You merge multiple chunk-level code review results into one final review.
+MERGE_SYSTEM_PROMPT = """You merge multiple chunk-level code review results into one final CodeRabbit-style review.
 
 Rules:
 - Deduplicate overlapping findings.
 - Keep the highest severity when duplicates conflict.
-- Produce one cohesive summary for the entire PR.
+- Produce one cohesive walkthrough for the entire PR.
 - Return JSON matching the schema exactly.
 """
 
