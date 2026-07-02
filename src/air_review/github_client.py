@@ -5,7 +5,7 @@ from __future__ import annotations
 import os
 from dataclasses import dataclass
 
-from github import Auth, Github, GithubException
+from github import Auth, Github
 from github.PullRequest import PullRequest
 from github.Repository import Repository
 
@@ -126,15 +126,17 @@ class GitHubReviewClient:
 
         pull = self.get_pull_request(pr_number)
         try:
+            commit = self.repo.get_commit(head_sha)
             pull.create_review(
-                commit_id=head_sha,
+                commit=commit,
                 body="Inline suggestions from AI code review.",
                 event="COMMENT",
                 comments=comments,
             )
             return len(comments)
-        except GithubException:
-            # Inline comments can fail on outdated lines or unsupported diff types.
+        except Exception as exc:
+            # Inline comments can fail on API differences, outdated lines, or diff types.
+            print(f"Skipped inline review comments: {exc}")
             return 0
 
     def close(self) -> None:
