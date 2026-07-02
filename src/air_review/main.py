@@ -7,7 +7,7 @@ import json
 import os
 import sys
 
-from air_review.config import ReviewConfig, load_config, load_dotenv_if_present
+from air_review.config import ReviewConfig, bot_comment_marker, load_config, load_dotenv_if_present
 from air_review.diff_processor import process_diff
 from air_review.formatter import format_review_markdown
 from air_review.gemini_client import GeminiReviewClient
@@ -62,7 +62,11 @@ def run_review(args: argparse.Namespace) -> int:
         print(f"Skipping PR #{pr_number}: label in {config.skip_labels}")
         return 0
 
-    github_client = GitHubReviewClient(repo=repo_name)
+    github_client = GitHubReviewClient(
+        repo=repo_name,
+        bot_name=config.bot_name,
+        comment_marker=bot_comment_marker(config.bot_id),
+    )
     try:
         context = github_client.fetch_pr_context(pr_number)
         if should_skip_review(context.labels, config):
@@ -91,10 +95,11 @@ def run_review(args: argparse.Namespace) -> int:
         markdown = format_review_markdown(
             review=review,
             processed=processed,
+            bot_name=config.bot_name,
             inline_comment_count=inline_count,
         )
         github_client.upsert_review_comment(pr_number, markdown)
-        print(f"Posted AI review comment on PR #{pr_number}")
+        print(f"Posted {config.bot_name} comment on PR #{pr_number}")
         return 0
     finally:
         github_client.close()
