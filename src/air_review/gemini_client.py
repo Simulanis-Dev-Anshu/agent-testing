@@ -72,8 +72,7 @@ class GeminiReviewClient:
     ) -> dict[str, Any]:
         if not processed.chunks:
             return {
-                "walkthrough": "I couldn't find reviewable diff content after filtering.",
-                "change_summary": [],
+                "walkthrough": "No reviewable diff content was found after filtering.",
                 "findings": [],
             }
 
