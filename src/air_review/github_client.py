@@ -116,7 +116,7 @@ class GitHubReviewClient:
             comments.append(
                 {
                     "path": finding["file"],
-                    "body": body,
+                    "body": format_finding_inline(finding),
                     "line": line,
                     "side": "RIGHT",
                 }
@@ -136,7 +136,6 @@ class GitHubReviewClient:
             )
             return len(comments)
         except Exception as exc:
-            # Inline comments can fail on API differences, outdated lines, or diff types.
             print(f"Skipped inline review comments: {exc}")
             return 0
 

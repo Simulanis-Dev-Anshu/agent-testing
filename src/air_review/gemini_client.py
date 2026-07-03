@@ -35,7 +35,7 @@ class GeminiReviewClient:
                 system_instruction=system_prompt,
                 response_mime_type="application/json",
                 response_schema=REVIEW_RESPONSE_SCHEMA,
-                temperature=0.2,
+                temperature=0.35,
             ),
         )
         text = response.text or "{}"

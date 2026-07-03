@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>UI Component Playground</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="app">
+    <header class="topbar">
+      <div class="brand">
+        <span class="brand-icon">AR</span>
+        <div>
+          <h1>Agent Review UI Kit</h1>
+          <p>Sample components for PR testing</p>
+        </div>
+      </div>
+      <nav class="nav-tabs" aria-label="Primary">
+        <button class="tab active" data-tab="dashboard">Dashboard</button>
+        <button class="tab" data-tab="users">Users</button>
+        <button class="tab" data-tab="settings">Settings</button>
+      </nav>
+    </header>
+
+    <main class="layout">
+      <aside class="sidebar">
+        <section class="panel">
+          <h2>Quick Stats</h2>
+          <ul class="stat-list">
+            <li><span>Open PRs</span><strong>12</strong></li>
+            <li><span>Reviews today</span><strong>34</strong></li>
+            <li><span>Issues found</span><strong>7</strong></li>
+          </ul>
+        </section>
+
+        <section class="panel">
+          <h2>Filters</h2>
+          <label class="field">
+            <span>Search</span>
+            <input type="search" placeholder="Search components..." />
+          </label>
+          <label class="field">
+            <span>Status</span>
+            <select>
+              <option>All</option>
+              <option>Active</option>
+              <option>Archived</option>
+            </select>
+          </label>
+        </section>
+      </aside>
+
+      <section class="content">
+        <div class="hero-card">
+          <div>
+            <p class="badge">Preview</p>
+            <h2>Review-ready component library</h2>
+            <p class="muted">
+              Use this page to test your AI review bot on UI changes, forms, cards, and interactions.
+            </p>
+          </div>
+          <div class="hero-actions">
+            <button class="btn btn-primary" id="openModalBtn">Create review</button>
+            <button class="btn btn-secondary">Export report</button>
+          </div>
+        </div>
+
+        <div class="grid cards">
+          <article class="card">
+            <div class="card-header">
+              <h3>Button group</h3>
+              <span class="chip chip-success">Ready</span>
+            </div>
+            <div class="button-row">
+              <button class="btn btn-primary">Primary</button>
+              <button class="btn btn-secondary">Secondary</button>
+              <button class="btn btn-danger">Danger</button>
+              <button class="btn btn-ghost">Ghost</button>
+            </div>
+          </article>
+
+          <article class="card">
+            <div class="card-header">
+              <h3>Alert states</h3>
+              <span class="chip chip-warning">Demo</span>
+            </div>
+            <div class="alert alert-info">New review rules were added to this repository.</div>
+            <div class="alert alert-success">All checks passed on the latest pull request.</div>
+            <div class="alert alert-error">2 critical issues need attention before merge.</div>
+          </article>
+
+          <article class="card">
+            <div class="card-header">
+              <h3>User table</h3>
+              <span class="chip">4 rows</span>
+            </div>
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Name</th>
+                    <th>Role</th>
+                    <th>Status</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td>Anshu Dev</td>
+                    <td>Admin</td>
+                    <td><span class="chip chip-success">Active</span></td>
+                    <td><button class="btn btn-ghost">Edit</button></td>
+                  </tr>
+                  <tr>
+                    <td>Review Bot</td>
+                    <td>Automation</td>
+                    <td><span class="chip chip-warning">Pending</span></td>
+                    <td><button class="btn btn-ghost">Edit</button></td>
+                  </tr>
+                  <tr>
+                    <td>Guest User</td>
+                    <td>Viewer</td>
+                    <td><span class="chip">Inactive</span></td>
+                    <td><button class="btn btn-ghost">Edit</button></td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </article>
+
+          <article class="card">
+            <div class="card-header">
+              <h3>Feedback form</h3>
+              <span class="chip chip-info">Interactive</span>
+            </div>
+            <form class="form" id="feedbackForm">
+              <label class="field">
+                <span>Title</span>
+                <input type="text" name="title" placeholder="Short summary" required />
+              </label>
+              <label class="field">
+                <span>Category</span>
+                <select name="category">
+                  <option value="bug">Bug</option>
+                  <option value="ui">UI</option>
+                  <option value="feature">Feature</option>
+                </select>
+              </label>
+              <label class="field">
+                <span>Description</span>
+                <textarea name="description" rows="4" placeholder="Describe the issue or idea"></textarea>
+              </label>
+              <label class="checkbox">
+                <input type="checkbox" name="notify" />
+                <span>Notify me when the review is complete</span>
+              </label>
+              <button class="btn btn-primary" type="submit">Submit feedback</button>
+            </form>
+            <p class="form-message hidden" id="formMessage"></p>
+          </article>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <div class="modal hidden" id="reviewModal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+    <div class="modal-backdrop" data-close-modal></div>
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3 id="modalTitle">Create review</h3>
+        <button class="icon-btn" id="closeModalBtn" aria-label="Close modal">&times;</button>
+      </div>
+      <div class="modal-body">
+        <label class="field">
+          <span>Pull request URL</span>
+          <input type="url" placeholder="https://github.com/org/repo/pull/1" />
+        </label>
+        <label class="field">
+          <span>Review depth</span>
+          <select>
+            <option>Quick scan</option>
+            <option selected>Standard</option>
+            <option>Deep review</option>
+          </select>
+        </label>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" data-close-modal>Cancel</button>
+        <button class="btn btn-primary">Start review</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
