@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Task Pulse</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="app">
+    <header class="header">
+      <div>
+        <p class="eyebrow">Sample App</p>
+        <h1>Task Pulse</h1>
+        <p class="subtitle">A tiny task board for PR review testing</p>
+      </div>
+      <button class="btn btn-primary" id="addTaskBtn">Add task</button>
+    </header>
+
+    <section class="stats">
+      <article class="stat-card">
+        <span>Total</span>
+        <strong id="totalCount">0</strong>
+      </article>
+      <article class="stat-card">
+        <span>Done</span>
+        <strong id="doneCount">0</strong>
+      </article>
+      <article class="stat-card">
+        <span>Pending</span>
+        <strong id="pendingCount">0</strong>
+      </article>
+    </section>
+
+    <main class="layout">
+      <section class="panel">
+        <h2>Create task</h2>
+        <form id="taskForm" class="task-form">
+          <label class="field">
+            <span>Title</span>
+            <input type="text" id="taskTitle" placeholder="Write docs" required />
+          </label>
+          <label class="field">
+            <span>Priority</span>
+            <select id="taskPriority">
+              <option value="low">Low</option>
+              <option value="medium" selected>Medium</option>
+              <option value="high">High</option>
+            </select>
+          </label>
+          <button class="btn btn-primary" type="submit">Save task</button>
+        </form>
+      </section>
+
+      <section class="panel panel-wide">
+        <div class="panel-head">
+          <h2>Task list</h2>
+          <input type="search" id="searchInput" placeholder="Search tasks..." />
+        </div>
+        <ul id="taskList" class="task-list"></ul>
+        <p id="emptyState" class="empty-state">No tasks yet. Add your first one.</p>
+      </section>
+    </main>
+  </div>
+
+  <template id="taskTemplate">
+    <li class="task-item">
+      <label class="task-check">
+        <input type="checkbox" class="task-done" />
+        <span class="task-title"></span>
+      </label>
+      <span class="task-priority"></span>
+      <button type="button" class="btn btn-ghost task-delete">Delete</button>
+    </li>
+  </template>
+
+  <script src="app.js"></script>
+</body>
+</html>
