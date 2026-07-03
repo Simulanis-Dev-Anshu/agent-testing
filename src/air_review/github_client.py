@@ -112,6 +112,7 @@ class GitHubReviewClient:
             if line is None:
                 continue
 
+            body = format_finding_inline(finding)
             comments.append(
                 {
                     "path": finding["file"],

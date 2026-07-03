@@ -65,6 +65,8 @@ Edit [`review_config.yaml`](review_config.yaml):
 
 ```yaml
 model: gemini-2.5-pro
+bot_name: "AIR Review"
+bot_id: "air-review"
 max_files: 40
 max_patch_bytes: 120000
 chunk_patch_bytes: 50000
@@ -77,6 +79,9 @@ inline_comment_severities:
   - "critical"
   - "warning"
 ```
+
+- `bot_name` — display name shown in review comments (e.g. `Simulanis Review Bot`)
+- `bot_id` — stable ID used to find/update the same PR comment; change only if you want a fresh comment thread
 
 Add the `no-ai-review` label to any PR to skip automated review.
 

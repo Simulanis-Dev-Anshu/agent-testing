@@ -6,10 +6,6 @@ REVIEW_RESPONSE_SCHEMA = {
     "type": "object",
     "properties": {
         "walkthrough": {"type": "string"},
-        "change_summary": {
-            "type": "array",
-            "items": {"type": "string"},
-        },
         "findings": {
             "type": "array",
             "items": {
@@ -49,39 +45,35 @@ REVIEW_RESPONSE_SCHEMA = {
             },
         },
     },
-    "required": ["walkthrough", "change_summary", "findings"],
+    "required": ["walkthrough", "findings"],
 }
 
 
-SYSTEM_PROMPT = """You are a friendly senior engineer reviewing a teammate's pull request.
+SYSTEM_PROMPT = """You are a senior software engineer writing a pull request review similar to CodeRabbit.
 
-Write in a natural, human tone — like CodeRabbit or a helpful colleague on GitHub. Avoid robotic audit language.
+Write like a helpful teammate reviewing code on GitHub.
 
-Return JSON with:
+Output style:
+- walkthrough: 2-4 sentences explaining what the PR changes and the main impact.
+- findings: actionable issues only. Skip nitpicks (missing newline, formatting-only issues).
 
-1. walkthrough
-   - 2-3 conversational sentences about what this PR is trying to do and your overall take.
-   - Example tone: "Nice work putting this together. This PR adds a UI playground and fixes the review API call, but there are a couple of edge cases worth tightening before merge."
+For each finding, use this CodeRabbit-style structure:
+- title: short actionable phrase, e.g. "Handle zero divisor before division (robust)" or "Replace hardcoded secret with environment variable (security)"
+- detail: explain the issue clearly in plain language — what is wrong, why it matters, and the recommended approach (2-4 sentences)
+- suggested_code: when possible, provide the exact replacement code snippet a developer can apply (function, block, or lines). Use an empty string only when no concrete code fix exists.
+- suggestion: one-line fallback fix guidance when suggested_code is empty
 
-2. change_summary
-   - 3-6 bullet-style strings describing what the PR contains or changes.
-   - Focus on files, features, behavior changes, and intent.
-   - Write like release notes for a teammate, not a linter report.
-   - Example: "Adds a static UI kit under testing/ with cards, forms, and a modal."
-
-3. findings
-   - Actionable issues only. Skip nitpicks (missing newline, minor formatting).
-   - title: short actionable phrase, e.g. "Handle zero divisor before division (robust)"
-   - detail: explain the issue clearly — what's wrong, why it matters, recommended approach
-   - suggested_code: exact fix snippet when possible; empty string if not applicable
-   - suggestion: one-line fallback when suggested_code is empty
-
-Prioritize bugs, security, missing edge cases, and harmful patterns.
+Prioritize:
+- Correctness bugs and logic errors
+- Security issues (injection, auth gaps, secret exposure)
+- Missing error handling and edge cases
+- Performance hotspots
+- Redundant or harmful patterns
 
 Rules:
-- Base everything only on the provided diff.
-- Use exact file paths from diff headers.
-- Use line_hint like "L42" when inferable; otherwise empty string.
+- Base findings only on the provided diff context.
+- Cite exact file paths from the diff headers.
+- Use line_hint like "L42" when inferable from diff hunks; otherwise use an empty string.
 - Return JSON matching the schema exactly.
 """
 
@@ -107,13 +99,12 @@ Diff:
 """
 
 
-MERGE_SYSTEM_PROMPT = """You merge chunk-level reviews into one final human-friendly PR review.
+MERGE_SYSTEM_PROMPT = """You merge multiple chunk-level code review results into one final CodeRabbit-style review.
 
 Rules:
-- Deduplicate findings and change_summary bullets.
-- Keep the highest severity when findings overlap.
-- Merge change_summary into one clean bullet list covering the whole PR.
-- Keep the walkthrough conversational and cohesive.
+- Deduplicate overlapping findings.
+- Keep the highest severity when duplicates conflict.
+- Produce one cohesive walkthrough for the entire PR.
 - Return JSON matching the schema exactly.
 """
 

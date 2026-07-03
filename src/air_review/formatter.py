@@ -16,10 +16,7 @@ def format_review_markdown(
 ) -> str:
     walkthrough = review.get("walkthrough") or review.get("summary", "")
     if not walkthrough:
-        walkthrough = "I reviewed the changes in this PR — here's what stood out."
-
-    change_summary = review.get("change_summary", [])
-    findings = sort_findings(review.get("findings", []))
+        walkthrough = "Review completed for the changed files in this pull request."
 
     sections = ["## Walkthrough", "", walkthrough.strip(), ""]
 
@@ -27,29 +24,25 @@ def format_review_markdown(
         skipped_count = len(processed.skipped_files) + len(processed.truncated_files)
         sections.extend(
             [
-                f"> Heads up: this was a partial review — {skipped_count} file(s) were skipped due to size or filter limits.",
+                f"> Partial review: {skipped_count} file(s) were skipped due to size or filter limits.",
                 "",
             ]
         )
 
+    findings = sort_findings(review.get("findings", []))
     if findings:
         sections.extend(["## Code suggestions", ""])
         for index, finding in enumerate(findings, start=1):
             sections.extend([format_finding_summary(finding, index), "", "---", ""])
 
-    if change_summary:
-        sections.extend(["## What this PR contains", ""])
-        sections.extend(f"- {item.strip()}" for item in change_summary if item.strip())
-        sections.append("")
-
     if inline_comment_count:
         sections.extend(
             [
-                f"> I also left {inline_comment_count} inline suggestion(s) directly on the changed lines.",
+                f"> {inline_comment_count} inline suggestion(s) were added directly on changed lines.",
                 "",
             ]
         )
 
     sections.append("---")
-    sections.append(f"*Review by {bot_name} — please double-check before merging.*")
+    sections.append(f"*Review by {bot_name} — verify suggestions before merging.*")
     return "\n".join(sections).strip()
